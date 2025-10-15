@@ -1,0 +1,84 @@
+[project]
+name = "cryojax_diffeo"
+authors = [
+    {name = "David Silva Sanchez", email = "david.silva@yale.edu"},
+    {name = "Jack Wang"},
+    {name = "Sebaestien Lowy"}
+]
+
+description = "My package description"
+readme = "README.md"
+requires-python = ">=3.11"
+keywords = ["CryoEM", "Molecular Dynamics", "single particle"]
+license = "MIT"
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: Implementation :: PyPy",
+]
+
+dependencies = [
+    "numpy",
+    "jax",
+    "jaxlib",
+    "jaxtyping",
+    "jaxopt",
+    "jax_dataloader",
+    "equinox",
+    "natsort",
+    "pydantic",
+    "mdtraj",
+    "tqdm",
+    "cryojax",
+    "dm-pix",
+    "optax",
+    "optimistix"
+]
+dynamic = ["version"]
+
+[project.optional-dependencies]
+dev = [
+  "pytest",
+  "mypy",
+  "pre-commit",
+  "ruff"
+]
+
+[project.urls]
+Documentation = "https://github.com/DSilva27/Cryo-EM-SPA-guided-diffusion-models/blob/main/README.md"
+Issues = "https://github.com/DSilva27/Cryo-EM-SPA-guided-diffusion-models/issues"
+Source = "https://github.com/DSilva27/Cryo-EM-SPA-guided-diffusion-models/"
+
+
+[build-system]
+requires = ["hatchling", "hatch-vcs"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "vcs"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "src/cryojax_diffeo/cryojax_diffeo_version.py"
+
+[tool.ruff]
+extend-include = ["*.ipynb"]
+lint.fixable = ["I001", "F401"]
+line-length = 90
+lint.ignore = ["E402", "E721", "E731", "E741", "F722"]
+lint.select = ["E", "F", "I001"]
+src = ["src"]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+extra-standard-library = ["typing_extensions"]
+lines-after-imports = 2
+order-by-type = false
+
+[tool.black]
+line-length = 90
+
+[tool.pyright]
+reportIncompatibleMethodOverride = true
+reportIncompatibleVariableOverride = false  # Incompatible with eqx.AbstractVar
+include = ["cryojax_diffeo", "tests"]

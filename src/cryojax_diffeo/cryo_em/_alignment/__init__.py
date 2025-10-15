@@ -1,0 +1,1 @@
+from ._rigid_body_align import ModelToVolumeAligner as ModelToVolumeAligner
