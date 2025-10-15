@@ -1,10 +1,9 @@
 from pathlib import Path
-from typing import overload
-from typing_extensions import Literal
 
 import yaml
 
 from ._config_validators import DatasetSimulatorConfig
+
 
 def load_config(
     path_to_config: str | Path,
