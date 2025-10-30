@@ -82,3 +82,7 @@ line-length = 90
 reportIncompatibleMethodOverride = true
 reportIncompatibleVariableOverride = false  # Incompatible with eqx.AbstractVar
 include = ["cryojax_diffeo", "tests"]
+
+
+[project.scripts]
+guided_diff = "boltz.main:cli"
