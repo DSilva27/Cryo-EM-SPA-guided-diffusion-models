@@ -1133,8 +1133,7 @@ def predict(  # noqa: C901, PLR0915, PLR0912
             "out_dir": out_dir,
         }
 
-        model_cls = Boltz1Guided
-        model_module = model_cls.load_from_checkpoint(
+        model_module = Boltz1Guided.load_from_checkpoint(
             checkpoint,
             strict=True,
             predict_args=predict_args,

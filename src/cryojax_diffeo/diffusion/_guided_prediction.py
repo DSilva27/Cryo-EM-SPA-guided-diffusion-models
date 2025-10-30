@@ -390,6 +390,9 @@ class Boltz1Guided(Boltz1):
             and "use_s_diffusion" in confidence_model_args
             and confidence_model_args["use_s_diffusion"]
         )
+
+        ########################## IMPORTANT CHANGE ##########################
+        ## This is the only change with respect to Boltz1
         self.structure_module = GuidedAtomDiffusion(
             score_model_args={
                 "token_z": token_z,
@@ -405,6 +408,8 @@ class Boltz1Guided(Boltz1):
             accumulate_token_repr=use_accumulate_token_repr,
             **diffusion_process_args,
         )
+        #######################################################################
+
         self.distogram_module = DistogramModule(token_z, num_bins)
         self.confidence_prediction = confidence_prediction
         self.alpha_pae = alpha_pae
