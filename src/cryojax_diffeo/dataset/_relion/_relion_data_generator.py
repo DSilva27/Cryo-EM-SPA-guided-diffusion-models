@@ -17,8 +17,8 @@ from cryojax.ndimage.transforms import CircularCosineMask
 from cryojax.rotations import SO3
 from jaxtyping import Array, Float, PRNGKeyArray
 
-from ..internal._config_validators import DatasetSimulatorConfig
-from ..simulator._image_rendering import render_image_with_white_gaussian_noise
+from ...cryo_em import render_image_with_white_gaussian_noise
+from ...internal._config_validators import DatasetSimulatorConfig
 
 
 def make_relion_parameter_file(
