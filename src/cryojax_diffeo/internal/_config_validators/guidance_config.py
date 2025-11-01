@@ -61,7 +61,7 @@ class GuidanceParamsImageLikelihood(BaseModel, extra="forbid"):
     batch_size: PositiveInt = Field(
         description="Batch size for the dataloader.",
     )
-    rng_seed: PositiveInt = Field(
+    rng_seed: int = Field(
         default=42,
         description="Random seed for shuffling the dataloader.",
     )

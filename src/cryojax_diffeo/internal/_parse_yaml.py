@@ -6,15 +6,16 @@ import yaml
 from cryojax.dataset import RelionParticleParameterFile, RelionParticleStackDataset
 from optax.schedules import constant_schedule
 
-from ..cryo_em import LikelihoodOptimalWeightsFn
-from ..dataset import create_dataloader
-from ..guidance import (
+from cryojax_diffeo.cryo_em import LikelihoodOptimalWeightsFn
+from cryojax_diffeo.dataset import create_dataloader
+from cryojax_diffeo.guidance import (
     AbstractGuidanceModel,
     ImageLikelihoodGuidanceModel,
     PointCloudGuidanceModel,
 )
-from ..internal import GuidanceConfig
-from ..io import read_atomic_models
+from cryojax_diffeo.io import read_atomic_models
+
+from . import GuidanceConfig
 
 
 def parse_guidance_yaml(
@@ -53,9 +54,7 @@ def _make_cryo_images_guidance(guidance_params: dict) -> ImageLikelihoodGuidance
         shuffle=True,
         jax_prng_key=guidance_params["rng_seed"],
     )
-    amplitudes, variances = _parse_topology(
-        guidance_params["topology_file"], guidance_params["multiplicity"]
-    )
+    amplitudes, variances = _parse_topology(guidance_params["topology_file"])
     reference_positions = _load_reference_positions(guidance_params["reference_pdb"])
 
     likelihood_fn = LikelihoodOptimalWeightsFn(
@@ -81,7 +80,7 @@ def _load_reference_positions(path_to_pdb: str | Path):
     return jnp.array(positions)
 
 
-def _parse_topology(path_to_pdb: str | Path, multiplicity: int):
+def _parse_topology(path_to_pdb: str | Path):
     atomic_model = read_atomic_models([path_to_pdb])[0]
     return atomic_model["amplitudes"], atomic_model["variances"]
 

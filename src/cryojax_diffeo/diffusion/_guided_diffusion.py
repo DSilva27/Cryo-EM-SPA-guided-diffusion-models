@@ -5,7 +5,6 @@ from math import sqrt
 from typing import Any, Optional
 
 import boltz.model.layers.initialize as init
-import equinox as eqx
 import jax.numpy as jnp
 import mdtraj
 import numpy as np
@@ -49,8 +48,8 @@ from pytorch_lightning import LightningModule
 from torch import nn, Tensor
 from torchmetrics import MeanMetric
 
-from ..guidance import PointCloudGuidanceModel
-from ..internal import parse_guidance_yaml
+from cryojax_diffeo.guidance import PointCloudGuidanceModel
+from cryojax_diffeo.internal import parse_guidance_yaml
 
 
 class GuidedAtomDiffusion(AtomDiffusion):
@@ -105,14 +104,11 @@ class GuidedAtomDiffusion(AtomDiffusion):
         token_repr = None
         token_a = None
 
-        rmsd_loss = []
+        # rmsd_loss = []
         writer = mdtraj.formats.XTCTrajectoryFile(
             os.path.join(steering_args["out_dir"], "trajectory.xtc"), "w"
         )
 
-        loss_and_grad_fn = eqx.filter_jit(
-            lambda x: guidance_model.compute_loss_and_gradient(x),
-        )
         # gradually denoise
         for step_idx, (sigma_tm, sigma_t, gamma) in enumerate(sigmas_and_gammas):
             random_R, random_tr = compute_random_augmentation(
@@ -192,8 +188,8 @@ class GuidedAtomDiffusion(AtomDiffusion):
                         atom_coords_noisy[atom_mask == 1].cpu().numpy()
                     ).reshape(multiplicity, -1, 3)
 
-                    loss_guidance, guidance_grad_jnp = loss_and_grad_fn(
-                        atom_coords_noisy_jnp
+                    loss_guidance, guidance_grad_jnp = (
+                        guidance_model.compute_loss_and_gradient(atom_coords_noisy_jnp)
                     )
                     guidance_grad = torch.ones_like(
                         atom_coords_noisy, device=atom_coords_noisy.device
@@ -225,12 +221,12 @@ class GuidedAtomDiffusion(AtomDiffusion):
             )
 
             atom_coords = atom_coords_next
-            rmsd_loss.append(loss_guidance.mean().item())
+            # rmsd_loss.append(loss_guidance.mean().item())
             writer.write(atom_coords_next[atom_mask == 1, :].cpu().numpy() / 10.0)
 
         writer.close()
-        rmsd_loss = torch.tensor(rmsd_loss)
-        torch.save(rmsd_loss, os.path.join(steering_args["out_dir"], "rmsd_loss.pt"))
+        # rmsd_loss = torch.tensor(rmsd_loss)
+        # torch.save(rmsd_loss, os.path.join(steering_args["out_dir"], "rmsd_loss.pt"))
 
         return dict(sample_atom_coords=atom_coords, diff_token_repr=token_repr)
 
