@@ -32,8 +32,8 @@ from rdkit import Chem
 from tqdm import tqdm
 
 # Local Imports
-from ..diffusion._guided_prediction import Boltz1Guided
-from ..internal import GuidanceConfig
+from cryojax_diffeo.diffusion import Boltz1Guided
+from cryojax_diffeo.internal import GuidanceConfig
 
 
 CCD_URL = "https://huggingface.co/boltz-community/boltz-1/resolve/main/ccd.pkl"

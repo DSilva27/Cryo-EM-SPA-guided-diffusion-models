@@ -68,9 +68,9 @@ class GuidanceParamsImageLikelihood(BaseModel, extra="forbid"):
     n_batches: PositiveInt = Field(
         description="Number of batches to use for guidance computation.",
     )
-    multiplicity: PositiveInt = Field(
-        description="Multiplicity factor for repeating amplitudes"
-        + " and variances from topology file.",
+    guidance_scale: PositiveFloat = Field(
+        default=0.5,
+        description="Scale factor for the guidance loss.",
     )
 
     @field_validator("reference_pdb")

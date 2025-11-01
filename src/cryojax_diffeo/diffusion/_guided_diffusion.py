@@ -186,34 +186,37 @@ class GuidedAtomDiffusion(AtomDiffusion):
             denoised_over_sigma = (atom_coords_noisy - atom_coords_denoised) / t_hat
 
             ############ GUIDANCE STEP ############
-            with torch.no_grad():
-                atom_coords_noisy_jnp = jnp.array(
-                    atom_coords_noisy[atom_mask == 1].cpu().numpy()
-                ).reshape(multiplicity, -1, 3)
+            if step_idx > 130:
+                with torch.no_grad():
+                    atom_coords_noisy_jnp = jnp.array(
+                        atom_coords_noisy[atom_mask == 1].cpu().numpy()
+                    ).reshape(multiplicity, -1, 3)
 
-                loss_guidance, guidance_grad_jnp = loss_and_grad_fn(atom_coords_noisy_jnp)
-                guidance_grad = torch.ones_like(
-                    atom_coords_noisy, device=atom_coords_noisy.device
-                )
+                    loss_guidance, guidance_grad_jnp = loss_and_grad_fn(
+                        atom_coords_noisy_jnp
+                    )
+                    guidance_grad = torch.ones_like(
+                        atom_coords_noisy, device=atom_coords_noisy.device
+                    )
 
-                guidance_grad[atom_mask == 1] = (
-                    torch.from_numpy(np.array(guidance_grad_jnp))
-                    .to(atom_coords_noisy.device)
-                    .reshape(-1, 3)
-                )
-                # print(f"Guidance grad shape: {guidance_grad.shape}")
+                    guidance_grad[atom_mask == 1] = (
+                        torch.from_numpy(np.array(guidance_grad_jnp))
+                        .to(atom_coords_noisy.device)
+                        .reshape(-1, 3)
+                    )
+                    # print(f"Guidance grad shape: {guidance_grad.shape}")
 
-                unguided_norm = torch.linalg.vector_norm(
-                    denoised_over_sigma, dim=(1, 2), keepdim=True
-                )
-                guided_norm = torch.linalg.vector_norm(
-                    guidance_grad, dim=(1, 2), keepdim=True
-                )
+                    unguided_norm = torch.linalg.vector_norm(
+                        denoised_over_sigma, dim=(1, 2), keepdim=True
+                    )
+                    guided_norm = torch.linalg.vector_norm(
+                        guidance_grad, dim=(1, 2), keepdim=True
+                    )
 
-                guidance_grad *= unguided_norm / guided_norm
-                denoised_over_sigma += (
-                    guidance_model.guidance_schedule(step_idx) * guidance_grad
-                )
+                    guidance_grad *= unguided_norm / guided_norm
+                    denoised_over_sigma += (
+                        guidance_model.guidance_schedule(step_idx) * guidance_grad
+                    )
             #######################################
 
             atom_coords_next = (

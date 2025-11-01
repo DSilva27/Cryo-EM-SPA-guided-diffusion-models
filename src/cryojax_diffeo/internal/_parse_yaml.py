@@ -72,6 +72,7 @@ def _make_cryo_images_guidance(guidance_params: dict) -> ImageLikelihoodGuidance
         dataloader,
         reference_positions,
         n_batches=guidance_params["n_batches"],
+        guidance_schedule=constant_schedule(guidance_params["guidance_scale"]),
     )
 
 
@@ -82,12 +83,7 @@ def _load_reference_positions(path_to_pdb: str | Path):
 
 def _parse_topology(path_to_pdb: str | Path, multiplicity: int):
     atomic_model = read_atomic_models([path_to_pdb])[0]
-    amplitudes = atomic_model["amplitudes"]
-    variances = atomic_model["variances"]
-
-    amplitudes = jnp.repeat(amplitudes, multiplicity, axis=0)
-    variances = jnp.repeat(variances, multiplicity, axis=0)
-    return amplitudes, variances
+    return atomic_model["amplitudes"], atomic_model["variances"]
 
 
 def _make_point_cloud_guidance(guidance_params: dict) -> PointCloudGuidanceModel:

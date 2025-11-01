@@ -12,7 +12,9 @@ from .._simulator import DilatedMask
 
 
 @partial(
-    eqx.filter_vmap, in_axes=(0, None, 0, 0, None, None, None, None, None), out_axes=0
+    eqx.filter_vmap,
+    in_axes=(0, None, None, None, None, None, None, None, None),
+    out_axes=0,
 )
 @partial(
     eqx.filter_vmap,
@@ -22,8 +24,8 @@ from .._simulator import DilatedMask
 def _compute_likelihood_matrix(
     ensemble_walkers: Float[Array, " n_atoms 3"],
     relion_stack: ParticleStackInfo,
-    amplitudes: Float[Array, "n_walkers n_atoms n_gaussians_per_atom"],
-    variances: Float[Array, "n_walkers n_atoms n_gaussians_per_atom"],
+    amplitudes: Float[Array, "n_atoms n_gaussians_per_atom"],
+    variances: Float[Array, "n_atoms n_gaussians_per_atom"],
     image_to_walker_log_likelihood_fn: LossFn,
     dilated_mask: DilatedMask | None,
     estimates_pose: bool,
@@ -65,8 +67,8 @@ def _compute_likelihood_matrix(
 def compute_likelihood_matrix(
     ensemble_walkers: Float[Array, "n_walkers n_atoms 3"],
     relion_stack: ParticleStackInfo,
-    amplitudes: Float[Array, "n_walkers n_atoms n_gaussians_per_atom"],
-    variances: Float[Array, "n_walkers n_atoms n_gaussians_per_atom"],
+    amplitudes: Float[Array, "n_atoms n_gaussians_per_atom"],
+    variances: Float[Array, "n_atoms n_gaussians_per_atom"],
     image_to_walker_log_likelihood_fn: LossFn,
     dilated_mask: Optional[DilatedMask] = None,
     estimates_pose: bool = False,
@@ -137,7 +139,7 @@ def compute_neg_log_likelihood(
     walkers: Float[Array, "n_walkers n_atoms 3"],
     weights: Float[Array, " n_walkers"],
     relion_stack: ParticleStackInfo,
-    amplitudes: Float[Array, "n_walkers n_atoms n_gaussians_per_atom"],
+    amplitudes: Float[Array, "n_atoms n_gaussians_per_atom"],
     variances: Float[Array, "n_walkers n_atoms n_gaussians_per_atom"],
     image_to_walker_log_likelihood_fn: LossFn,
     dilated_mask: Optional[DilatedMask] = None,

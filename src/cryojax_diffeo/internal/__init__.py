@@ -3,6 +3,6 @@ from ._config_validators import (
     DatasetSimulatorConfig as DatasetSimulatorConfig,
     GuidanceConfig as GuidanceConfig,
 )
-from .parse_yaml_guidance import (
+from ._parse_yaml import (
     parse_guidance_yaml as parse_guidance_yaml,
 )
