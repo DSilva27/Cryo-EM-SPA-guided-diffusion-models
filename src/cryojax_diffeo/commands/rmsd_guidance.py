@@ -13,14 +13,13 @@ from pathlib import Path
 from typing import Literal, Optional
 
 import click
-import mdtraj
 import torch
+import yaml
 from boltz.data import const
 from boltz.data.module.inference import BoltzInferenceDataModule
 from boltz.data.msa.mmseqs2 import run_mmseqs2
 from boltz.data.parse.a3m import parse_a3m
 from boltz.data.parse.csv import parse_csv
-from boltz.data.parse.fasta import parse_fasta
 from boltz.data.parse.yaml import parse_yaml
 
 # Boltz Imports
@@ -34,6 +33,7 @@ from tqdm import tqdm
 
 # Local Imports
 from ..diffusion._guided_prediction import Boltz1Guided
+from ..internal import GuidanceConfig
 
 
 CCD_URL = "https://huggingface.co/boltz-community/boltz-1/resolve/main/ccd.pkl"
@@ -440,7 +440,7 @@ def process_input(  # noqa: C901, PLR0912, PLR0915, D103
     try:
         # Parse data
         if path.suffix.lower() in (".fa", ".fas", ".fasta"):
-            target = parse_fasta(path, ccd, mol_dir, boltz2=False)
+            raise RuntimeError("Fasta parsing not supported in this library")
         elif path.suffix.lower() in (".yml", ".yaml"):
             target = parse_yaml(path, ccd, mol_dir, boltz2=False)
         elif path.is_dir():
@@ -890,16 +890,16 @@ def cli() -> None:
     help=" to dump the s and z embeddings into a npz file. Default is False.",
 )
 @click.option(
-    "--target_pdb",
+    "--guidance_config",
     type=str,
     default=None,
-    help="Path to a target PDB file. If provided, diffusion will be "
-    "guided to match this structure.",
+    help="Path to a guidance configuration file. If provided, diffusion will be "
+    "guided according to this configuration.",
 )
 def predict(  # noqa: C901, PLR0915, PLR0912
     data: str,
     out_dir: str,
-    target_pdb,
+    guidance_config: str,
     cache: str = "~/.boltz",
     checkpoint: Optional[str] = None,
     devices: int = 1,
@@ -930,6 +930,22 @@ def predict(  # noqa: C901, PLR0915, PLR0912
     write_embeddings: bool = False,
 ) -> None:
     """Run predictions with Boltz."""
+
+    with open(guidance_config, "r") as f:
+        guidance_config_data = yaml.safe_load(f)
+
+    guidance_config_model = GuidanceConfig(**guidance_config_data)
+    if guidance_config_model.guidance_mode == "point-cloud":
+        if isinstance(guidance_config_model.guidance_params["target_pdbs"], list):
+            num_references = len(guidance_config_model.guidance_params["target_pdbs"])
+        else:
+            num_references = 1
+
+        assert num_references == diffusion_samples, (
+            "Number of reference structures must be equal to number of diffusion samples "
+            "for point-cloud guidance."
+        )
+
     # If cpu, write a friendly warning
     if accelerator == "cpu":
         msg = "Running on CPU, this will be slow. Consider using a GPU."
@@ -1121,14 +1137,9 @@ def predict(  # noqa: C901, PLR0915, PLR0912
             "write_full_pde": write_full_pde,
         }
 
-        # steering_args = BoltzSteeringParams()
-        atomic_model = mdtraj.load(target_pdb)
-        atom_indices = atomic_model.topology.select("protein and not element H")
-        reference_coords = atomic_model.xyz[0, atom_indices] * 10.0
-        reference_coords = torch.tensor(reference_coords)
-
+        # Check if guidance config is properly formatted
         steering_args = {
-            "reference_coords": reference_coords,
+            "guidance_config": guidance_config,
             "guidance_schedule": 0.5,
             "out_dir": out_dir,
         }

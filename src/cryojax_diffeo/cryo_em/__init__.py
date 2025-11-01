@@ -14,6 +14,6 @@ from ._pose_search import (
     global_SO3_hier_search as global_SO3_hier_search,
 )
 from ._simulator import (
-    DilatedMask as DilatedMask,
+    # DilatedMask as DilatedMask,
     render_image_with_white_gaussian_noise as render_image_with_white_gaussian_noise,
 )

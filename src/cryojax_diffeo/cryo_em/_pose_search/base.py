@@ -5,7 +5,7 @@ import jax.numpy as jnp
 from cryojax.dataset import ParticleStackInfo
 from jaxtyping import Array, Float
 
-from .._likelihood_optimization._loss_functions.common_functions import (
+from .._loss_functions.common_functions import (
     compute_optimal_scale_and_offset,
 )
 from .geometry import (

@@ -8,8 +8,8 @@ from jaxopt import ProjectedGradient
 from jaxopt.projection import projection_simplex
 from jaxtyping import Array, Float, Int
 
-from ...._custom_types import ConstantT, LossFn
-from ....simulator import DilatedMask
+from ..._custom_types import ConstantT, LossFn
+from .._simulator import DilatedMask
 from .ensemble_losses import (
     compute_likelihood_matrix,
     compute_neg_log_likelihood,
@@ -19,7 +19,6 @@ from .euclidean_losses import (
     likelihood_isotropic_gaussian,
     likelihood_isotropic_gaussian_marginalized,
 )
-from .sliced_wasserstein import likelihood_sliced_wasserstein
 
 
 class AbstractLikelihoodFn(eqx.Module, strict=True):
@@ -52,7 +51,7 @@ class LikelihoodFn(AbstractLikelihoodFn, strict=True):
         amplitudes: Float[Array, "n_walkers n_atoms n_gaussians_per_atom"],
         variances: Float[Array, "n_walkers n_atoms n_gaussians_per_atom"],
         image_to_walker_log_likelihood_fn: Literal[
-            "iso_gaussian", "iso_gaussian_var_marg", "sliced_wasserstein"
+            "iso_gaussian", "iso_gaussian_var_marg"
         ]
         | LossFn,
         loss_fn_constant_args: Optional[ConstantT] = None,
@@ -72,11 +71,6 @@ class LikelihoodFn(AbstractLikelihoodFn, strict=True):
             )
             self.loss_fn_constant_args = (
                 1.0 if loss_fn_constant_args is None else loss_fn_constant_args
-            )
-        elif image_to_walker_log_likelihood_fn == "sliced_wasserstein":
-            self.image_to_walker_log_likelihood_fn = likelihood_sliced_wasserstein
-            self.loss_fn_constant_args = (
-                (18, 2) if loss_fn_constant_args is None else loss_fn_constant_args
             )
         else:
             assert callable(image_to_walker_log_likelihood_fn), (
@@ -142,11 +136,6 @@ class LikelihoodOptimalWeightsFn(AbstractLikelihoodFn, strict=True):
             )
             self.loss_fn_constant_args = (
                 1.0 if loss_fn_constant_args is None else loss_fn_constant_args
-            )
-        elif image_to_walker_log_likelihood_fn == "sliced_wasserstein":
-            self.image_to_walker_log_likelihood_fn = likelihood_sliced_wasserstein
-            self.loss_fn_constant_args = (
-                (18, 2) if loss_fn_constant_args is None else loss_fn_constant_args
             )
         else:
             assert callable(image_to_walker_log_likelihood_fn), (

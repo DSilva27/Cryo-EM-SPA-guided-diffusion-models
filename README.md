@@ -17,7 +17,7 @@ pip install "jax[cuda12]"
 Now check if both libraries see your GPU
 
 ```bash
-python -c "import torch; import jax; print(torch.cuda.is_available()); print(jax.devices("gpu"))
+python -c "import torch; import jax; print(torch.cuda.is_available()); print(jax.devices('gpu'))"
 ```
 
 Finally, install this library
@@ -35,7 +35,7 @@ pip install -e ".[dev]"
 It is still possible that there is something wrong with the installation, as sometimes the numpy version required by JAX clashes with the numpy version required by Boltz. This should be fine, if you get an error message, then simply reinstall with the required numpy version
 
 ```bash
-pip install numpy=x.xx
+pip install numpy==x.xx
 ```
 
 

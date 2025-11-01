@@ -2,7 +2,7 @@ import cryojax.simulator as cxs
 from cryojax.dataset import ParticleStackInfo
 from jaxtyping import Array, Float
 
-from ..._pose_search import global_SO3_hier_search
+from .._pose_search import global_SO3_hier_search
 
 
 def _make_image_model_with_stack_poses(

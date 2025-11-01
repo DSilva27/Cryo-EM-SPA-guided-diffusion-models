@@ -85,4 +85,5 @@ include = ["cryojax_diffeo", "tests"]
 
 
 [project.scripts]
-guided_diff = "boltz.main:cli"
+guided_diff = "cryojax_diffeo.commands.rmsd_guidance:cli"
+simulate_data = "cryojax_diffeo.commands.simulate_data:main_cli"
