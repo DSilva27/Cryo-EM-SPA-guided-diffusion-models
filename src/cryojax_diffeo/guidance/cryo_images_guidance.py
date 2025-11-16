@@ -66,4 +66,6 @@ def _align_walkers_to_reference(walkers, reference_positions):
 @eqx.filter_jit
 @eqx.filter_value_and_grad
 def _compute_loss_and_gradient(walkers, weights, relion_batch, likelihood_fn):
-    return likelihood_fn(walkers, weights, relion_batch)[0]
+    return likelihood_fn(
+        walkers, weights, relion_batch, batch_size_walkers=1, batch_size_images=10
+    )[0]

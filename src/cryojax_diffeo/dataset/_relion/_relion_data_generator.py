@@ -238,7 +238,7 @@ def _make_particle_parameters(key: PRNGKeyArray, config: dict) -> Dict:
 
     # ... build the CTF
     transfer_theory = cxs.ContrastTransferTheory(
-        ctf=cxs.AberratedAstigmaticCTF(
+        ctf=cxs.AstigmaticCTF(
             defocus_in_angstroms=defocus_in_angstroms,
             astigmatism_in_angstroms=astigmatism_in_angstroms,
             astigmatism_angle=astigmatism_angle,

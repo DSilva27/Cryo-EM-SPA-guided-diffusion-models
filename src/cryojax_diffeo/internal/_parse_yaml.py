@@ -2,12 +2,11 @@ from pathlib import Path
 
 import jax.numpy as jnp
 import mdtraj
+import optax
 import yaml
 from cryojax.dataset import RelionParticleParameterFile, RelionParticleStackDataset
-from optax.schedules import constant_schedule
 
 from cryojax_diffeo.cryo_em import LikelihoodOptimalWeightsFn
-from cryojax_diffeo.dataset import create_dataloader
 from cryojax_diffeo.guidance import (
     AbstractGuidanceModel,
     ImageLikelihoodGuidanceModel,
@@ -41,6 +40,8 @@ def _make_guidance_model(
 
 
 def _make_cryo_images_guidance(guidance_params: dict) -> ImageLikelihoodGuidanceModel:
+    from cryojax_diffeo.dataset import create_dataloader
+
     data_sign_factor = (
         -1.0 if guidance_params["data_params"]["data_sign"] == "dark-on-light" else 1.0
     )
@@ -66,12 +67,16 @@ def _make_cryo_images_guidance(guidance_params: dict) -> ImageLikelihoodGuidance
         estimates_pose=False,
     )
 
+    scale_schedule = optax.schedules.cosine_decay_schedule(
+        init_value=2.0, decay_steps=50, alpha=0.5
+    )
+
     return ImageLikelihoodGuidanceModel(
         likelihood_fn,
         dataloader,
         reference_positions,
         n_batches=guidance_params["n_batches"],
-        guidance_schedule=constant_schedule(guidance_params["guidance_scale"]),
+        guidance_schedule=scale_schedule,
     )
 
 
@@ -96,7 +101,7 @@ def _make_point_cloud_guidance(guidance_params: dict) -> PointCloudGuidanceModel
 
     guidance_model = PointCloudGuidanceModel(
         reference_point_clouds=reference_point_clouds,
-        guidance_schedule=constant_schedule(guidance_params["guidance_scale"]),
+        guidance_schedule=optax.constant_schedule(guidance_params["guidance_scale"]),
     )
 
     return guidance_model

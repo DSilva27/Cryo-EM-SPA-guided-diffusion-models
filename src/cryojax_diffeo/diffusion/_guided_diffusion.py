@@ -182,7 +182,7 @@ class GuidedAtomDiffusion(AtomDiffusion):
             denoised_over_sigma = (atom_coords_noisy - atom_coords_denoised) / t_hat
 
             ############ GUIDANCE STEP ############
-            if step_idx > 130:
+            if step_idx > 125:
                 with torch.no_grad():
                     atom_coords_noisy_jnp = jnp.array(
                         atom_coords_noisy[atom_mask == 1].cpu().numpy()
@@ -209,10 +209,12 @@ class GuidedAtomDiffusion(AtomDiffusion):
                         guidance_grad, dim=(1, 2), keepdim=True
                     )
 
+                    scaling_factor = torch.from_numpy(
+                        np.array(guidance_model.guidance_schedule(step_idx))
+                    ).to(atom_coords_noisy.device)
+
                     guidance_grad *= unguided_norm / guided_norm
-                    denoised_over_sigma += (
-                        guidance_model.guidance_schedule(step_idx) * guidance_grad
-                    )
+                    denoised_over_sigma += scaling_factor * guidance_grad
             #######################################
 
             atom_coords_next = (

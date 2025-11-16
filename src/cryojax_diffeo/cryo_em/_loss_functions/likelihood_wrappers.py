@@ -34,6 +34,9 @@ class AbstractLikelihoodFn(eqx.Module, strict=True):
         walkers: Float[Array, "n_atoms n_gaussians_per_atom"],
         weights: Float[Array, "n_atoms n_gaussians_per_atom"],
         relion_batch: Any,
+        *,
+        batch_size_walkers: Optional[int] = None,
+        batch_size_images: Optional[int] = None,
     ) -> Float:
         raise NotImplementedError
 
@@ -88,6 +91,9 @@ class LikelihoodFn(AbstractLikelihoodFn, strict=True):
         walkers: Float[Array, "n_atoms n_gaussians_per_atom"],
         weights: Float[Array, "n_atoms n_gaussians_per_atom"],
         relion_batch: Any,
+        *,
+        batch_size_walkers: Optional[int] = None,
+        batch_size_images: Optional[int] = None,
     ):
         return compute_neg_log_likelihood(
             walkers,
@@ -100,6 +106,8 @@ class LikelihoodFn(AbstractLikelihoodFn, strict=True):
             self.estimates_pose,
             constant_args=self.loss_fn_constant_args,
             per_particle_args=relion_batch["per_particle_args"],
+            batch_size_walkers=batch_size_walkers,
+            batch_size_images=batch_size_images,
         )
 
 
@@ -153,6 +161,9 @@ class LikelihoodOptimalWeightsFn(AbstractLikelihoodFn, strict=True):
         walkers: Float[Array, "n_atoms n_gaussians_per_atom"],
         weights: Float[Array, "n_atoms n_gaussians_per_atom"],
         relion_batch: Any,
+        *,
+        batch_size_walkers: Optional[int] = None,
+        batch_size_images: Optional[int] = None,
     ):
         likelihood_matrix = compute_likelihood_matrix(
             walkers,
@@ -164,6 +175,8 @@ class LikelihoodOptimalWeightsFn(AbstractLikelihoodFn, strict=True):
             self.estimates_pose,
             constant_args=self.loss_fn_constant_args,
             per_particle_args=relion_batch["per_particle_args"],
+            batch_size_walkers=batch_size_walkers,
+            batch_size_images=batch_size_images,
         )
         weights = _optimize_weights(weights, likelihood_matrix)
         weights = jax.nn.softmax(weights)

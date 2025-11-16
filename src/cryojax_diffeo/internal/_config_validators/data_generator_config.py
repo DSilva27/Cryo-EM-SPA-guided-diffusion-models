@@ -55,7 +55,7 @@ class DatasetSimulatorConfigAtomicModels(BaseModel, extra="forbid"):
 
     @field_serializer("path_to_atomic_models")
     def serialize_path_to_atomic_models(self, v):
-        return _validate_files_with_type(v, file_types=[".pdb", ".npz"])
+        return _validate_files_with_type(v, file_types=[".pdb", ".npz", ".mrc"])
 
 
 class DatasetSimulatorConfig(BaseModel, extra="forbid"):
