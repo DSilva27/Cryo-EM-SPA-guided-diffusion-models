@@ -81,7 +81,7 @@ class ImageLikelihoodGuidanceModel(AbstractGuidanceModel):
             updates = _compute_loss_and_gradient(
                 aligned_positions,
                 weights,
-                batch["relion_stack"],
+                batch["particle_stack"],
                 batch["per_particle_args"],
                 self.likelihood_fn,
             )
