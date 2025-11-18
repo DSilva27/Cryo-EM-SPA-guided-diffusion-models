@@ -111,7 +111,7 @@ def _compute_loss_and_gradient(
         weights,
         relion_stack,
         per_particle_args,
-        batch_size_walkers=1,
+        batch_size_walkers=50,
         batch_size_images=1,
     )
 

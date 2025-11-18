@@ -1,10 +1,12 @@
 import gc
+import os
 import random
 from math import sqrt
 from typing import Any, Optional
 
 import boltz.model.layers.initialize as init
 import jax.numpy as jnp
+import mdtraj
 import numpy as np
 import torch
 from boltz.data import const
@@ -103,13 +105,13 @@ class GuidedAtomDiffusion(AtomDiffusion):
         token_a = None
 
         # rmsd_loss = []
-        # writers = []
-        # for i in range(multiplicity):
-        #     writers.append(
-        #         mdtraj.formats.XTCTrajectoryFile(
-        #             os.path.join(steering_args["out_dir"], f"trajectory_{i}.xtc"), "w"
-        #         )
-        #     )
+        writers = []
+        for i in range(multiplicity):
+            writers.append(
+                mdtraj.formats.XTCTrajectoryFile(
+                    os.path.join(steering_args["out_dir"], f"trajectory_{i}.xtc"), "w"
+                )
+            )
 
         # gradually denoise
         for step_idx, (sigma_tm, sigma_t, gamma) in enumerate(sigmas_and_gammas):
@@ -226,13 +228,19 @@ class GuidedAtomDiffusion(AtomDiffusion):
 
             atom_coords = atom_coords_next
             # rmsd_loss.append(loss_guidance.mean().item())
-            # for i in range(multiplicity):
-            #     writers[i].write(
-            #         atom_coords_next[i, atom_mask == 1, :].cpu().numpy() / 10.0
-            #     )
 
-        # for writer in writers:
-        #     writer.close()
+            coords_for_writer = (
+                atom_coords_next[atom_mask == 1]
+                .cpu()
+                .numpy()
+                .reshape(multiplicity, -1, 3)
+                / 10.0
+            )
+            for i in range(multiplicity):
+                writers[i].write(coords_for_writer[i])
+
+        for writer in writers:
+            writer.close()
         # rmsd_loss = torch.tensor(rmsd_loss)
         # torch.save(rmsd_loss, os.path.join(steering_args["out_dir"], "rmsd_loss.pt"))
 

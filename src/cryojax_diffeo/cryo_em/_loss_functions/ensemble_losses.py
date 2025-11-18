@@ -256,5 +256,7 @@ def compute_neg_log_likelihood(
         estimates_pose,
         constant_args=constant_args,
         per_particle_args=per_particle_args,
+        batch_size_walkers=batch_size_walkers,
+        batch_size_images=batch_size_images,
     )
     return compute_neg_log_likelihood_from_weights(weights, lklhood_matrix)
