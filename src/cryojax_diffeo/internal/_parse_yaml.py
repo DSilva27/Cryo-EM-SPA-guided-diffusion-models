@@ -67,11 +67,23 @@ def _make_cryo_images_guidance(guidance_params: dict) -> ImageLikelihoodGuidance
         estimates_pose=False,
     )
 
-    # scale_schedule = optax.schedules.cosine_decay_schedule(
-    #     init_value=2.0, decay_steps=50, alpha=0.5
-    # )
+    scale_schedule = optax.schedules.cosine_decay_schedule(
+        init_value=2.0, decay_steps=50, alpha=0.5
+    )
 
-    scale_schedule = optax.constant_schedule(guidance_params["guidance_scale"])
+    # scale_schedule = optax.constant_schedule(5.0)
+    # scale_schedule = optax.piecewise_constant_schedule(
+    #     5.0, boundaries_and_scales={125: 1.0, 150: 2.0 / 5.0, 175: 0.0}
+    # )
+    constant_schedule = optax.constant_schedule(0.0)
+
+    cosine_decay_schedule = optax.cosine_decay_schedule(
+        init_value=5.0, decay_steps=50, alpha=0.05
+    )
+
+    scale_schedule = optax.join_schedules(
+        (constant_schedule, cosine_decay_schedule), [125]
+    )
 
     return ImageLikelihoodGuidanceModel(
         likelihood_fn,
