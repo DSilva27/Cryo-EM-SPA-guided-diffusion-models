@@ -1,14 +1,15 @@
-from typing import Any, Optional
+from typing import Optional
 from typing_extensions import Literal
 
 import equinox as eqx
 import jax
+from cryojax.dataset import ParticleStackInfo
 from cryojax.jax_util import error_if_not_positive
 from jaxopt import ProjectedGradient
 from jaxopt.projection import projection_simplex
 from jaxtyping import Array, Float, Int
 
-from ..._custom_types import ConstantT, LossFn
+from ..._custom_types import ConstantT, LossFn, PerParticleT
 from .._simulator import DilatedMask
 from .ensemble_losses import (
     compute_likelihood_matrix,
@@ -33,7 +34,8 @@ class AbstractLikelihoodFn(eqx.Module, strict=True):
         self,
         walkers: Float[Array, "n_atoms n_gaussians_per_atom"],
         weights: Float[Array, "n_atoms n_gaussians_per_atom"],
-        relion_batch: Any,
+        relion_stack,
+        per_particle_args,
         *,
         batch_size_walkers: Optional[int] = None,
         batch_size_images: Optional[int] = None,
@@ -90,7 +92,8 @@ class LikelihoodFn(AbstractLikelihoodFn, strict=True):
         self,
         walkers: Float[Array, "n_atoms n_gaussians_per_atom"],
         weights: Float[Array, "n_atoms n_gaussians_per_atom"],
-        relion_batch: Any,
+        relion_stack: ParticleStackInfo,
+        per_particle_args: PerParticleT,
         *,
         batch_size_walkers: Optional[int] = None,
         batch_size_images: Optional[int] = None,
@@ -98,14 +101,14 @@ class LikelihoodFn(AbstractLikelihoodFn, strict=True):
         return compute_neg_log_likelihood(
             walkers,
             weights,
-            relion_batch["particle_stack"],
+            relion_stack,
             self.amplitudes,
             self.variances,
             self.image_to_walker_log_likelihood_fn,
             self.dilated_mask,
             self.estimates_pose,
             constant_args=self.loss_fn_constant_args,
-            per_particle_args=relion_batch["per_particle_args"],
+            per_particle_args=per_particle_args,
             batch_size_walkers=batch_size_walkers,
             batch_size_images=batch_size_images,
         )
@@ -160,21 +163,22 @@ class LikelihoodOptimalWeightsFn(AbstractLikelihoodFn, strict=True):
         self,
         walkers: Float[Array, "n_atoms n_gaussians_per_atom"],
         weights: Float[Array, "n_atoms n_gaussians_per_atom"],
-        relion_batch: Any,
+        relion_stack: ParticleStackInfo,
+        per_particle_args: PerParticleT,
         *,
         batch_size_walkers: Optional[int] = None,
         batch_size_images: Optional[int] = None,
     ):
         likelihood_matrix = compute_likelihood_matrix(
             walkers,
-            relion_batch["particle_stack"],
+            relion_stack,
             self.amplitudes,
             self.variances,
             self.image_to_walker_log_likelihood_fn,
             self.dilated_mask,
             self.estimates_pose,
             constant_args=self.loss_fn_constant_args,
-            per_particle_args=relion_batch["per_particle_args"],
+            per_particle_args=per_particle_args,
             batch_size_walkers=batch_size_walkers,
             batch_size_images=batch_size_images,
         )

@@ -6,7 +6,7 @@ import optax
 import yaml
 from cryojax.dataset import RelionParticleParameterFile, RelionParticleStackDataset
 
-from cryojax_diffeo.cryo_em import LikelihoodOptimalWeightsFn
+from cryojax_diffeo.cryo_em import LikelihoodFn
 from cryojax_diffeo.guidance import (
     AbstractGuidanceModel,
     ImageLikelihoodGuidanceModel,
@@ -58,7 +58,7 @@ def _make_cryo_images_guidance(guidance_params: dict) -> ImageLikelihoodGuidance
     amplitudes, variances = _parse_topology(guidance_params["topology_file"])
     reference_positions = _load_reference_positions(guidance_params["reference_pdb"])
 
-    likelihood_fn = LikelihoodOptimalWeightsFn(
+    likelihood_fn = LikelihoodFn(
         amplitudes,
         variances,
         image_to_walker_log_likelihood_fn="iso_gaussian_var_marg",
@@ -67,9 +67,11 @@ def _make_cryo_images_guidance(guidance_params: dict) -> ImageLikelihoodGuidance
         estimates_pose=False,
     )
 
-    scale_schedule = optax.schedules.cosine_decay_schedule(
-        init_value=2.0, decay_steps=50, alpha=0.5
-    )
+    # scale_schedule = optax.schedules.cosine_decay_schedule(
+    #     init_value=2.0, decay_steps=50, alpha=0.5
+    # )
+
+    scale_schedule = optax.constant_schedule(guidance_params["guidance_scale"])
 
     return ImageLikelihoodGuidanceModel(
         likelihood_fn,
