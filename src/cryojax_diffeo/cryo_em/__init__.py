@@ -5,7 +5,7 @@ from ._loss_functions import (
     compute_neg_log_likelihood as compute_neg_log_likelihood,
     compute_neg_log_likelihood_from_weights as compute_neg_log_likelihood_from_weights,
     likelihood_isotropic_gaussian as likelihood_isotropic_gaussian,
-    likelihood_isotropic_gaussian_marginalized as likelihood_isotropic_gaussian_marginalized,
+    likelihood_isotropic_gaussian_marginalized as likelihood_isotropic_gaussian_marginalized,  # noqa: E501
     LikelihoodFn as LikelihoodFn,
     LikelihoodOptimalWeightsFn as LikelihoodOptimalWeightsFn,
     make_image_model_from_gmm as make_image_model_from_gmm,

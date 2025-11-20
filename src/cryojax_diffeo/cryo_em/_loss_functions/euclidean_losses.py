@@ -73,7 +73,6 @@ def likelihood_isotropic_gaussian_marginalized(
     variances: Float[Array, "n_atoms n_gaussians_per_atom"],
     dilated_mask: Optional[DilatedMask] = None,
     estimates_pose: bool = False,
-    *,
     constant_args: float = 1.0,
     per_particle_args: PerParticleT = (),
 ) -> Float:
@@ -113,6 +112,6 @@ def likelihood_isotropic_gaussian_marginalized(
     scale, offset = compute_optimal_scale_and_offset(computed_image, observed_image)
     n_pixels = computed_image.size
 
-    return (2 - n_pixels) * jnp.log(
+    return -n_pixels * jnp.log(
         jnp.linalg.norm(scale * computed_image - observed_image + offset)
     )
