@@ -45,7 +45,7 @@ def render_image_with_white_gaussian_noise(
     volume = _select_potential(volumes, potential_idx)
 
     pose = jax.lax.cond(
-        isinstance(volume, cxs.GaussianMixtureVolume),
+        isinstance(volume, cxs.FourierVoxelGridVolume),
         lambda p: p.to_inverse_rotation(),
         lambda p: p,
         particle_parameters["pose"],

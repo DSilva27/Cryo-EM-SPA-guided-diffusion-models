@@ -78,7 +78,7 @@ def _make_cryo_images_guidance(guidance_params: dict) -> ImageLikelihoodGuidance
     constant_schedule = optax.constant_schedule(0.0)
 
     cosine_decay_schedule = optax.cosine_decay_schedule(
-        init_value=5.0, decay_steps=50, alpha=0.05
+        init_value=2.0, decay_steps=50, alpha=0.5
     )
 
     scale_schedule = optax.join_schedules(
