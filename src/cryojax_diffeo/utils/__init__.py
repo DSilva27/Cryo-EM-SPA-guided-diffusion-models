@@ -1,0 +1,1 @@
+from .rmsd_alignment import rigid_align_positions as rigid_align_positions
