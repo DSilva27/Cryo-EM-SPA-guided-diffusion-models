@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 from typing_extensions import Literal
 
 from pydantic import (
@@ -45,12 +45,22 @@ class GuidanceParamsImageLikelihoodDataParams(BaseModel, extra="forbid"):
         + "Use 'dark-on-light' for positive log-likelihood and 'light-on-dark' "
         + " for negative log-likelihood.",
     )
+    path_to_dilated_mask: Optional[FilePath] = Field(
+        default=None, description="Path to the dilated mask file."
+    )
 
     @field_validator("path_to_starfile")
     @classmethod
     def validate_path_to_starfile(cls, v):
         if Path(v).suffix not in [".star"]:
             raise ValueError("path_to_starfile must be a STAR file.")
+        return v
+
+    @field_validator("path_to_dilated_mask")
+    @classmethod
+    def validate_path_to_dilated_mask(cls, v):
+        if v is not None and Path(v).suffix not in [".mrc"]:
+            raise ValueError("path_to_dilated_mask must be an MRC file.")
         return v
 
 

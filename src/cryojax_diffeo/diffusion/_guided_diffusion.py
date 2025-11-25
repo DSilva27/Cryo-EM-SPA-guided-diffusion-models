@@ -186,16 +186,31 @@ class GuidedAtomDiffusion(AtomDiffusion):
             denoised_over_sigma = (atom_coords_noisy - atom_coords_denoised) / t_hat
 
             ############ GUIDANCE STEP ############
-            if step_idx >= 125 and step_idx < 175:
+            # if step_idx >= 140 and step_idx < 190:
+            if not jnp.isclose(guidance_model.guidance_schedule(step_idx), 0.0):
+                # if step_idx >= 125 and step_idx < 190:
                 with torch.no_grad():
                     atom_coords_noisy_jnp = jnp.array(
                         atom_coords_noisy[atom_mask == 1].cpu().numpy()
                     ).reshape(multiplicity, -1, 3)
 
+                    # jnp.savez(
+                    #     "atom_coords_noisy.npz",
+                    #     atom_coords_noisy_jnp=atom_coords_noisy_jnp,
+                    #     target_point_clouds=guidance_model.target_point_clouds,
+                    # )
                     loss_guidance, guidance_grad_jnp = (
-                        guidance_model.compute_loss_and_gradient(atom_coords_noisy_jnp)
+                        guidance_model.compute_loss_and_gradient(
+                            atom_coords_noisy_jnp  # [:, :9757, :]
+                        )
                     )
-                    guidance_grad = torch.ones_like(
+
+                    # guidance_grad_jnp = jnp.zeros_like(atom_coords_noisy_jnp)
+                    # guidance_grad_jnp = guidance_grad_jnp.at[:, :9757, :].set(
+                    #     guidance_grad_jnp_tmp
+                    # )
+                    # print("RMSD Loss", loss_guidance)
+                    guidance_grad = torch.zeros_like(
                         atom_coords_noisy, device=atom_coords_noisy.device
                     )
 
@@ -212,7 +227,7 @@ class GuidedAtomDiffusion(AtomDiffusion):
                     guided_norm = torch.linalg.vector_norm(
                         guidance_grad, dim=(1, 2), keepdim=True
                     )
-                    # print(guidance_model.guidance_schedule(step_idx))
+                    print(guidance_model.guidance_schedule(step_idx))
 
                     scaling_factor = torch.from_numpy(
                         np.array(guidance_model.guidance_schedule(step_idx))

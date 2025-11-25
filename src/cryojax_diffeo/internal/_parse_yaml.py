@@ -5,8 +5,9 @@ import mdtraj
 import optax
 import yaml
 from cryojax.dataset import RelionParticleParameterFile, RelionParticleStackDataset
+from cryojax.io import read_array_from_mrc
 
-from cryojax_diffeo.cryo_em import LikelihoodFn
+from cryojax_diffeo.cryo_em import DilatedMask, LikelihoodFn
 from cryojax_diffeo.guidance import (
     AbstractGuidanceModel,
     ImageLikelihoodGuidanceModel,
@@ -58,12 +59,22 @@ def _make_cryo_images_guidance(guidance_params: dict) -> ImageLikelihoodGuidance
     amplitudes, variances = _parse_topology(guidance_params["topology_file"])
     reference_positions = _load_reference_positions(guidance_params["reference_pdb"])
 
+    if guidance_params["data_params"]["path_to_dilated_mask"] is not None:
+        mask_voxel_grid = read_array_from_mrc(
+            guidance_params["data_params"]["path_to_dilated_mask"]
+        )
+        dilated_mask = DilatedMask(
+            mask_voxel_grid, relion_dataset[0]["parameters"]["image_config"]
+        )
+    else:
+        dilated_mask = None
+
     likelihood_fn = LikelihoodFn(
         amplitudes,
         variances,
         image_to_walker_log_likelihood_fn="iso_gaussian_var_marg",
         loss_fn_constant_args=data_sign_factor,
-        dilated_mask=None,
+        dilated_mask=dilated_mask,
         estimates_pose=False,
     )
 
@@ -78,12 +89,14 @@ def _make_cryo_images_guidance(guidance_params: dict) -> ImageLikelihoodGuidance
     constant_schedule = optax.constant_schedule(0.0)
 
     cosine_decay_schedule = optax.cosine_decay_schedule(
-        init_value=2.0, decay_steps=50, alpha=0.5
+        init_value=5.0, decay_steps=90, alpha=0.0
     )
 
     scale_schedule = optax.join_schedules(
-        (constant_schedule, cosine_decay_schedule), [125]
+        (constant_schedule, cosine_decay_schedule), [130]
     )
+
+    # scale_schedule = constant_schedule
 
     return ImageLikelihoodGuidanceModel(
         likelihood_fn,
@@ -109,9 +122,11 @@ def _make_point_cloud_guidance(guidance_params: dict) -> PointCloudGuidanceModel
     for file in guidance_params["target_pdbs"]:
         pdb = mdtraj.load(str(file))
         pdb = pdb.atom_slice(pdb.top.select("not element H"))
-        reference_point_clouds.append(pdb.xyz[0] * 10.0)
+        reference_point_clouds.append(pdb.xyz[0] * 10.0)  # [:9757]
 
     reference_point_clouds = jnp.array(reference_point_clouds)
+    if reference_point_clouds.ndim == 2:
+        reference_point_clouds = reference_point_clouds[None, ...]
 
     guidance_model = PointCloudGuidanceModel(
         reference_point_clouds=reference_point_clouds,

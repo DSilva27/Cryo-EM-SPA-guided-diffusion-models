@@ -55,7 +55,6 @@ def render_image_with_white_gaussian_noise(
         volume,
         particle_parameters["image_config"],
         pose,
-        particle_parameters["pose"],
         particle_parameters["transfer_theory"],
         signal_region=(mask.array == 1),
         normalizes_signal=True,
