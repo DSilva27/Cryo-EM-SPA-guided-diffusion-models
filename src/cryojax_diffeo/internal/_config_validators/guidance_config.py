@@ -6,6 +6,7 @@ from pydantic import (
     BaseModel,
     DirectoryPath,
     Field,
+    field_serializer,
     field_validator,
     FilePath,
     model_validator,
@@ -96,6 +97,11 @@ class GuidanceParamsImageLikelihood(BaseModel, extra="forbid"):
         if Path(v).suffix not in [".pdb"]:
             raise ValueError("topology_file must be PDB files.")
         return v
+
+    @field_serializer("data_params")
+    @classmethod
+    def serialize_data_params(cls, v):
+        return dict(GuidanceParamsImageLikelihoodDataParams(**v).model_dump())
 
 
 class GuidanceConfig(BaseModel, extra="forbid"):

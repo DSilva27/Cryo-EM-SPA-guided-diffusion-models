@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import jax
 import jax.numpy as jnp
 import mdtraj
 import optax
@@ -54,7 +55,7 @@ def _make_cryo_images_guidance(guidance_params: dict) -> ImageLikelihoodGuidance
         relion_dataset,
         batch_size=guidance_params["batch_size"],
         shuffle=True,
-        jax_prng_key=guidance_params["rng_seed"],
+        jax_prng_key=jax.random.key(guidance_params["rng_seed"]),
     )
     amplitudes, variances = _parse_topology(guidance_params["topology_file"])
     reference_positions = _load_reference_positions(guidance_params["reference_pdb"])
@@ -86,17 +87,17 @@ def _make_cryo_images_guidance(guidance_params: dict) -> ImageLikelihoodGuidance
     # scale_schedule = optax.piecewise_constant_schedule(
     #     5.0, boundaries_and_scales={125: 1.0, 150: 2.0 / 5.0, 175: 0.0}
     # )
-    constant_schedule = optax.constant_schedule(0.0)
+    # constant_schedule = optax.constant_schedule(0.0)
 
-    cosine_decay_schedule = optax.cosine_decay_schedule(
-        init_value=5.0, decay_steps=90, alpha=0.0
-    )
+    # cosine_decay_schedule = optax.cosine_decay_schedule(
+    #     init_value=5.0, decay_steps=50, alpha=0.0
+    # )
 
-    scale_schedule = optax.join_schedules(
-        (constant_schedule, cosine_decay_schedule), [130]
-    )
+    # scale_schedule = optax.join_schedules(
+    #     (constant_schedule, cosine_decay_schedule), [125]
+    # )
 
-    # scale_schedule = constant_schedule
+    scale_schedule = optax.constant_schedule(1.0)
 
     return ImageLikelihoodGuidanceModel(
         likelihood_fn,

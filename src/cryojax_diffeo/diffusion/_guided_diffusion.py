@@ -83,6 +83,17 @@ class GuidedAtomDiffusion(AtomDiffusion):
         # torch.save(atom_mask, "atom_mask.pt")
         atom_mask = atom_mask.repeat_interleave(multiplicity, 0)
 
+        # ref_point_cloud = (
+        #     mdtraj.load("optimal_point_cloud/optimized_point_cloud.pdb")
+        #     .center_coordinates()
+        #     .xyz
+        #     * 10.0
+        # )
+        # rmsd_guidance = PointCloudGuidanceModel(
+        #     ref_point_cloud,
+        #     optax.cosine_decay_schedule(init_value=2.0, decay_steps=25, alpha=1.0),
+        # )
+
         shape = (*atom_mask.shape, 3)
         token_repr_shape = (
             multiplicity,
@@ -187,7 +198,10 @@ class GuidedAtomDiffusion(AtomDiffusion):
 
             ############ GUIDANCE STEP ############
             # if step_idx >= 140 and step_idx < 190:
-            if not jnp.isclose(guidance_model.guidance_schedule(step_idx), 0.0):
+            # if not jnp.isclose(guidance_model.guidance_schedule(step_idx), 0.0):
+            if step_idx >= 125 and step_idx < 185:
+                # if step_idx == 150:
+                #     jax.clear_caches()
                 # if step_idx >= 125 and step_idx < 190:
                 with torch.no_grad():
                     atom_coords_noisy_jnp = jnp.array(
@@ -199,11 +213,24 @@ class GuidedAtomDiffusion(AtomDiffusion):
                     #     atom_coords_noisy_jnp=atom_coords_noisy_jnp,
                     #     target_point_clouds=guidance_model.target_point_clouds,
                     # )
+                    # if step_idx >= 125 and step_idx < 150:
+                    #     loss_guidance, guidance_grad_jnp = (
+                    #         rmsd_guidance.compute_loss_and_gradient(
+                    #             atom_coords_noisy_jnp  # [:, :9757, :]
+                    #         )
+                    #     )
+                    #     scaling_factor = torch.from_numpy(
+                    #         np.array(rmsd_guidance.guidance_schedule(step_idx - 125))
+                    #     ).to(atom_coords_noisy.device)
+                    # else:
                     loss_guidance, guidance_grad_jnp = (
                         guidance_model.compute_loss_and_gradient(
                             atom_coords_noisy_jnp  # [:, :9757, :]
                         )
                     )
+                    scaling_factor = torch.from_numpy(
+                        np.array(guidance_model.guidance_schedule(step_idx))
+                    ).to(atom_coords_noisy.device)
 
                     # guidance_grad_jnp = jnp.zeros_like(atom_coords_noisy_jnp)
                     # guidance_grad_jnp = guidance_grad_jnp.at[:, :9757, :].set(
@@ -227,11 +254,7 @@ class GuidedAtomDiffusion(AtomDiffusion):
                     guided_norm = torch.linalg.vector_norm(
                         guidance_grad, dim=(1, 2), keepdim=True
                     )
-                    print(guidance_model.guidance_schedule(step_idx))
-
-                    scaling_factor = torch.from_numpy(
-                        np.array(guidance_model.guidance_schedule(step_idx))
-                    ).to(atom_coords_noisy.device)
+                    # print(scaling_factor)
 
                     guidance_grad *= unguided_norm / guided_norm
                     denoised_over_sigma += scaling_factor * guidance_grad
@@ -257,6 +280,20 @@ class GuidedAtomDiffusion(AtomDiffusion):
 
         for writer in writers:
             writer.close()
+
+        # jax.clear_caches()
+        atom_coords_noisy_jnp = jnp.array(
+            atom_coords[atom_mask == 1].cpu().numpy()
+        ).reshape(multiplicity, -1, 3)
+
+        ensemble_weights = guidance_model.estimate_final_weights(
+            atom_coords_noisy_jnp  # [:, :9757, :]
+        )
+        print("Ensemble weights:", ensemble_weights)
+
+        jnp.save(
+            os.path.join(steering_args["out_dir"], "final_weights.npy"), ensemble_weights
+        )
         # rmsd_loss = torch.tensor(rmsd_loss)
         # torch.save(rmsd_loss, os.path.join(steering_args["out_dir"], "rmsd_loss.pt"))
 
