@@ -1,10 +1,8 @@
-from typing import Callable, Optional, TypeVar
+from typing import Any, Callable, Optional, TypeVar
 from typing_extensions import TypeAlias
 
 from cryojax.dataset import ParticleStackInfo
 from jaxtyping import Array, Float
-
-from .cryo_em import DilatedMask
 
 
 PerParticleT = TypeVar("PerParticleT")
@@ -16,7 +14,7 @@ LossFn: TypeAlias = Callable[
         ParticleStackInfo,
         Float[Array, "n_atoms n_gaussians_per_atom"],
         Float[Array, "n_atoms n_gaussians_per_atom"],
-        Optional[DilatedMask],
+        Optional[Any],
         Optional[bool],
         ConstantT,
         PerParticleT,

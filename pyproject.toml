@@ -82,3 +82,8 @@ line-length = 90
 reportIncompatibleMethodOverride = true
 reportIncompatibleVariableOverride = false  # Incompatible with eqx.AbstractVar
 include = ["cryojax_diffeo", "tests"]
+
+
+[project.scripts]
+guided_diff = "cryojax_diffeo.commands.rmsd_guidance:cli"
+simulate_data = "cryojax_diffeo.commands.simulate_data:main_cli"
